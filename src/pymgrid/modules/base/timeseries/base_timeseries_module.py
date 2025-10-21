@@ -31,9 +31,17 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
                  normalized_action_bounds=(0, 1),
                  provided_energy_name='provided_energy',
                  absorbed_energy_name='absorbed_energy',
-                 normalize_pos=...):
+                 normalize_pos=...,
+                 online=False,
+                 initial_time_series_value=0.0):
 
-        self._time_series = self._set_time_series(time_series)
+        self._online_mode = online
+        self._online_fill_value = None
+        self._final_step_dynamic = False
+        self.online = online
+        self.initial_time_series_value = initial_time_series_value
+
+        self._time_series = self._set_time_series(time_series, initial_time_series_value)
         self._min_obs, self._max_obs, self._min_act, self._max_act = self._get_bounds()
 
         self.final_step = final_step
@@ -57,7 +65,28 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
 
         self._current_forecast = self.forecast()
 
-    def _set_time_series(self, time_series):
+    def _set_time_series(self, time_series, initial_value=None):
+        n_components = len(self.state_components) if self.state_components is not None else 1
+
+        if time_series is None:
+            if not self._online_mode:
+                raise ValueError('time_series cannot be None when online mode is disabled.')
+
+            if initial_value is None:
+                initial_value = np.zeros(n_components)
+
+            _time_series = np.array(initial_value, dtype=float).reshape((-1, n_components))
+
+            if _time_series.shape[0] == 0:
+                _time_series = np.zeros((1, n_components))
+
+            if _time_series.shape[0] != 1:
+                raise ValueError('initial_time_series_value must define a single step when using online mode.')
+
+            signed_series = self._sign_check(_time_series)
+            self._online_fill_value = signed_series.copy()
+            return signed_series
+
         _time_series = np.array(time_series)
         try:
             shape = (-1, _time_series.shape[1])
@@ -65,7 +94,10 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
             shape = (-1, 1)
         _time_series = _time_series.reshape(shape)
         assert len(_time_series) == len(time_series)
-        return self._sign_check(_time_series)
+        signed_series = self._sign_check(_time_series)
+        if self._online_mode:
+            self._online_fill_value = signed_series[-1:].copy()
+        return signed_series
 
     def _sign_check(self, time_series):
         if self.is_source and self.is_sink:
@@ -81,7 +113,11 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
             return -np.abs(time_series)
 
     def _get_bounds(self):
-        _min, _max = np.min(self._time_series), np.max(self._time_series)
+        if self._time_series.size:
+            _min, _max = np.min(self._time_series), np.max(self._time_series)
+        else:
+            _min = _max = 0.0
+
         if _min > 0:
             _min = 0
         elif _max < 0:
@@ -113,7 +149,9 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
         """
         val_c_n = self.time_series[1+self.current_step:1+self.current_step+self.forecast_horizon, :]
         try:
-            val_c = self.time_series[self.current_step, :]
+            val_c = self._get_timeseries_row(self.current_step)
+        except RuntimeError:
+            return None
         except IndexError:
             forecast = self._forecaster.full_pad(self.time_series.shape, self._forecast_horizon)
         else:
@@ -137,7 +175,9 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
             The observation.
         """
         try:
-            return self.time_series[self.current_step, :]
+            return self._get_timeseries_row(self.current_step)
+        except RuntimeError as exc:
+            raise RuntimeError(str(exc))
         except IndexError:
             return self._forecaster.full_pad(self.time_series.shape, 1).reshape(-1)
 
@@ -156,10 +196,11 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
 
     @time_series.setter
     def time_series(self, value):
-        self._time_series = self._set_time_series(value)
+        self._time_series = self._set_time_series(value, self._online_fill_value)
         self._min_obs, self._max_obs, self._min_act, self._max_act = self._get_bounds()
         self._action_space = self._get_action_spaces(self.normalized_action_bounds)
         self._observation_space = self._get_observation_spaces()
+        self._update_dynamic_final_step()
 
     @property
     def min_obs(self):
@@ -323,8 +364,10 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
 
         if value <= 0:
             self._final_step = len(self)
+            self._final_step_dynamic = True
         else:
             self._final_step = value
+            self._final_step_dynamic = False
         try:
             if self._final_step <= self.initial_step:
                 raise ValueError('final_step value must be greater than initial_step')
@@ -349,3 +392,65 @@ class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):
 
     def __len__(self):
         return self._time_series.shape[0]
+
+    def _update_dynamic_final_step(self):
+        if getattr(self, '_final_step_dynamic', False):
+            self._final_step = len(self)
+
+    def _get_timeseries_row(self, step):
+        try:
+            return self._time_series[step, :]
+        except IndexError:
+            if self._online_mode:
+                raise RuntimeError(f'No data ingested for step {step}. Call ingest_online_data before stepping.')
+            raise
+
+    @property
+    def online_mode(self):
+        return self._online_mode
+
+    def ingest_online_data(self, value, step=None):
+        if not self._online_mode:
+            raise RuntimeError('Module is not configured for online ingestion.')
+
+        if step is None:
+            step = self.current_step
+
+        if step < 0:
+            raise ValueError('step must be non-negative.')
+
+        n_components = len(self.state_components) if self.state_components is not None else 1
+        new_value = np.array(value, dtype=float).reshape((-1, n_components))
+
+        if new_value.shape[0] != 1:
+            raise ValueError('value must define a single time step.')
+
+        signed_value = self._sign_check(new_value)
+        current_len = len(self._time_series)
+
+        if current_len == 0:
+            filler = self._online_fill_value if self._online_fill_value is not None else signed_value
+            padding = np.repeat(filler, step, axis=0) if step > 0 else np.empty((0, filler.shape[1]))
+            self._time_series = np.vstack([padding, signed_value])
+        elif step >= current_len:
+            filler = self._online_fill_value if self._online_fill_value is not None else self._time_series[-1:]
+            padding = np.repeat(filler, step + 1 - current_len, axis=0)
+            self._time_series = np.vstack([self._time_series, padding])
+
+        self._time_series[step, :] = signed_value.reshape((-1, n_components))[0]
+        self._online_fill_value = signed_value.copy()
+
+        if len(self._time_series) <= step + 1:
+            self._time_series = np.vstack([self._time_series, self._online_fill_value])
+
+        self._min_obs, self._max_obs, self._min_act, self._max_act = self._get_bounds()
+        self._action_space = self._get_action_spaces(self.normalized_action_bounds)
+        self._observation_space = self._get_observation_spaces()
+        self._update_dynamic_final_step()
+
+        try:
+            self._forecaster.time_series = self.time_series[self.initial_step:self.final_step, :]
+        except AttributeError:
+            pass
+
+        self._current_forecast = self.forecast()

@@ -452,6 +452,83 @@ class Microgrid(yaml.YAMLObject):
         return {module_name: [module.from_normalized(value, act=act, obs=obs) for module, value in zip(module_list, data_dict[module_name])]
                 for module_name, module_list in self._modules.iterdict() if module_name in data_dict}
 
+    def ingest_real_time_data(self, data_dict, step=None):
+        """Ingest real-time measurements for modules configured for online simulation.
+
+        Parameters
+        ----------
+        data_dict : dict[str, Sequence[float] or float]
+            Mapping from module name to either a single value or a list of
+            values. The length of each list must match the number of modules
+            registered under that name.
+        step : int or None, default None
+            Time-step at which to ingest the data. If None, the module's
+            current step is used.
+        """
+
+        for module_name, modules in self._modules.iterdict():
+            if module_name not in data_dict:
+                continue
+
+            module_values = data_dict[module_name]
+            if not isinstance(module_values, (list, tuple, np.ndarray)):
+                module_values = [module_values]
+
+            if len(module_values) != len(modules):
+                raise ValueError(f'Expected {len(modules)} values for module "{module_name}" but '
+                                 f'received {len(module_values)}.')
+
+            for module, value in zip(modules, module_values):
+                if not hasattr(module, 'ingest_online_data'):
+                    raise AttributeError(f'Module "{module_name}" does not support online ingestion.')
+                module.ingest_online_data(value, step=step)
+
+    def fetch_real_time_data(self, module_names=None):
+        """Fetch the latest real-time measurements from online modules.
+
+        Parameters
+        ----------
+        module_names : Iterable[str] or None, default None
+            Optional set of module names to include. If None, values from all
+            online-capable modules are returned.
+
+        Returns
+        -------
+        dict[str, list[float]]
+            Dictionary of module names mapped to lists of the most recent
+            real-time values.
+        """
+
+        if module_names is not None:
+            module_names = set(module_names)
+
+        measurements = {}
+        for module_name, modules in self._modules.iterdict():
+            if module_names is not None and module_name not in module_names:
+                continue
+
+            values = []
+            for module in modules:
+                value = None
+                if hasattr(module, 'current_load'):
+                    value = module.current_load
+                elif hasattr(module, 'current_renewable'):
+                    value = module.current_renewable
+                elif hasattr(module, 'current_obs'):
+                    obs = module.current_obs
+                    try:
+                        value = obs.item()
+                    except ValueError:
+                        value = obs.tolist()
+
+                if value is not None:
+                    values.append(value)
+
+            if values:
+                measurements[module_name] = values
+
+        return measurements
+
     def get_log(self, as_frame=True, drop_singleton_key=False, drop_forecasts=False):
         """
 
