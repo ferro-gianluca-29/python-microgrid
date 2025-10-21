@@ -51,6 +51,15 @@ class LoadModule(BaseTimeSeriesMicrogridModule):
         Whether to raise errors if bounds are exceeded in an action.
         If False, actions are clipped to the limit possible.
 
+    online : bool, default False
+        If True, the module expects measurements to be provided step-by-step using
+        :meth:`.ingest_online_data` instead of being initialized with a full time
+        series.
+
+    initial_time_series_value : float, default 0.0
+        Initial value used to bootstrap the internal time series when ``online``
+        is True and no historical data are provided.
+
     """
     module_type = ('load', 'fixed')
     yaml_tag = u"!LoadModule"
@@ -68,7 +77,9 @@ class LoadModule(BaseTimeSeriesMicrogridModule):
                  initial_step=0,
                  final_step=-1,
                  normalized_action_bounds=(0, 1),
-                 raise_errors=False):
+                 raise_errors=False,
+                 online=False,
+                 initial_time_series_value=0.0):
         super().__init__(
             time_series,
             raise_errors=raise_errors,
@@ -80,7 +91,9 @@ class LoadModule(BaseTimeSeriesMicrogridModule):
             final_step=final_step,
             normalized_action_bounds=normalized_action_bounds,
             provided_energy_name=None,
-            absorbed_energy_name='load_met'
+            absorbed_energy_name='load_met',
+            online=online,
+            initial_time_series_value=initial_time_series_value
         )
 
     def _get_bounds(self):
@@ -114,7 +127,7 @@ class LoadModule(BaseTimeSeriesMicrogridModule):
             Current load demand.
 
         """
-        return -1 * self._time_series[self._current_step].item()
+        return -1 * self._get_timeseries_row(self._current_step).item()
 
     @property
     def is_sink(self):
