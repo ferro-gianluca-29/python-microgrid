@@ -423,10 +423,7 @@ class TestMicrogridLoadPV(TestCase):
         self.assertEqual(log_row['load'].index.get_level_values(0).nunique(), self.n_loads)
 
         self.assertEqual(log_entry('load', 'load_current'), -1 * self.load_ts[step_number])
-        self.assertEqual(log_entry('load', 'load_met'), self.load_ts[step_number])
-
-        if loss_load == 0:
-            self.assertEqual(log_entry('load', 'load_met'), load_met)
+        self.assertEqual(log_entry('load', 'load_met'), load_met)
 
         self.assertEqual(log_entry('renewable',  'renewable_current'), self.pv_ts[step_number])
         self.assertEqual(log_entry('renewable', 'renewable_used'), load_met)

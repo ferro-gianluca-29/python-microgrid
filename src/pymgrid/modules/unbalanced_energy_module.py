@@ -32,7 +32,12 @@ class UnbalancedEnergyModule(BaseMicrogridModule):
         info_key = 'provided_energy' if as_source else 'absorbed_energy'
         reward = -1.0 * self.get_cost(external_energy_change, as_source, as_sink)
         assert reward <= 0
+
         info = {info_key: external_energy_change}
+        if as_source:
+            info['loss_load_energy'] = external_energy_change
+        else:
+            info['overgeneration_energy'] = external_energy_change
 
         return reward, False, info
 

@@ -54,6 +54,15 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
         Whether to raise errors if bounds are exceeded in an action.
         If False, actions are clipped to the limit possible.
 
+    online : bool, default False
+        If True, enables real-time ingestion of renewable production values via
+        :meth:`.ingest_online_data` instead of requiring a complete time series
+        at initialization.
+
+    initial_time_series_value : float, default 0.0
+        Initial value used when ``online`` is True and no historical time series
+        is supplied.
+
     """
     module_type = ('renewable', 'flex')
     yaml_tag = u"!RenewableModule"
@@ -72,7 +81,9 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
                  initial_step=0,
                  final_step=-1,
                  normalized_action_bounds=(0, 1),
-                 provided_energy_name='renewable_used'):
+                 provided_energy_name='renewable_used',
+                 online=False,
+                 initial_time_series_value=0.0):
         super().__init__(
             time_series,
             raise_errors,
@@ -84,7 +95,9 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
             final_step=final_step,
             normalized_action_bounds=normalized_action_bounds,
             provided_energy_name=provided_energy_name,
-            absorbed_energy_name=None
+            absorbed_energy_name=None,
+            online=online,
+            initial_time_series_value=initial_time_series_value
         )
 
     def update(self, external_energy_change, as_source=False, as_sink=False):
@@ -111,7 +124,7 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
             Renewable production.
 
         """
-        return self._time_series[self._current_step].item()
+        return self._get_timeseries_row(self._current_step).item()
 
     @property
     def is_source(self):

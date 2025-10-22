@@ -258,9 +258,15 @@ class Microgrid(yaml.YAMLObject):
         control_copy = control.copy()
         microgrid_step = MicrogridStep(reward_shaping_func=self.reward_shaping_func, cost_info=self.get_cost_info())
 
+        load_tracking = []
+
         for name, modules in self.fixed.iterdict():
-            for module in modules:
-                microgrid_step.append(name, *module.step(0.0, normalized=False))
+            for idx, module in enumerate(modules):
+                module_step = module.step(0.0, normalized=False)
+                microgrid_step.append(name, *module_step)
+
+                if module.module_type[0] == 'load':
+                    load_tracking.append((name, idx, module))
 
         fixed_provided, fixed_consumed, _, _ = microgrid_step.balance()
         log_dict = self._get_log_dict(fixed_provided, fixed_consumed, prefix='fixed')
@@ -328,6 +334,8 @@ class Microgrid(yaml.YAMLObject):
 
         provided, consumed, reward, shaped_reward = microgrid_step.balance(shape_reward=True)
 
+        self._reconcile_load_met(microgrid_step, load_tracking)
+
         log_dict = self._get_log_dict(
             provided-controllable_fixed_provided,
             consumed-controllable_fixed_consumed,
@@ -351,6 +359,51 @@ class Microgrid(yaml.YAMLObject):
         if log_dict:
             _log_dict.update(log_dict)
         return _log_dict
+
+    def _reconcile_load_met(self, microgrid_step, load_tracking):
+        if not load_tracking:
+            return
+
+        load_entries = []
+        total_demand = 0.0
+        for name, idx, module in load_tracking:
+            module_infos = microgrid_step.info.get(name, [])
+            if idx >= len(module_infos):
+                continue
+
+            demand = float(module_infos[idx].get('absorbed_energy', 0.0))
+            load_entries.append((name, idx, module, demand))
+            total_demand += demand
+
+        if total_demand <= 0.0:
+            return
+
+        loss_load_total = 0.0
+        for name, modules in self._modules.iterdict():
+            for idx, module in enumerate(modules):
+                if module.module_type[0] != 'balancing':
+                    continue
+
+                module_infos = microgrid_step.info.get(name, [])
+                if idx >= len(module_infos):
+                    continue
+
+                loss_load_total += float(module_infos[idx].get('loss_load_energy', 0.0))
+
+        served_total = max(total_demand - loss_load_total, 0.0)
+        ratio = max(0.0, min(1.0, served_total / total_demand))
+
+        for name, idx, module, demand in load_entries:
+            served = demand * ratio
+            info_entry = microgrid_step.info.get(name, [])
+            if idx < len(info_entry):
+                info_entry[idx]['absorbed_energy'] = served
+                info_entry[idx]['unserved_energy'] = demand - served
+
+            try:
+                module._logger['load_met'][-1] = served
+            except KeyError:
+                pass
 
     def get_cost_info(self):
         return self._modules.get_attrs('production_marginal_cost', 'absorption_marginal_cost', as_pandas=False)
@@ -451,6 +504,83 @@ class Microgrid(yaml.YAMLObject):
         assert act + obs == 1, 'One of act or obs must be True but not both.'
         return {module_name: [module.from_normalized(value, act=act, obs=obs) for module, value in zip(module_list, data_dict[module_name])]
                 for module_name, module_list in self._modules.iterdict() if module_name in data_dict}
+
+    def ingest_real_time_data(self, data_dict, step=None):
+        """Ingest real-time measurements for modules configured for online simulation.
+
+        Parameters
+        ----------
+        data_dict : dict[str, Sequence[float] or float]
+            Mapping from module name to either a single value or a list of
+            values. The length of each list must match the number of modules
+            registered under that name.
+        step : int or None, default None
+            Time-step at which to ingest the data. If None, the module's
+            current step is used.
+        """
+
+        for module_name, modules in self._modules.iterdict():
+            if module_name not in data_dict:
+                continue
+
+            module_values = data_dict[module_name]
+            if not isinstance(module_values, (list, tuple, np.ndarray)):
+                module_values = [module_values]
+
+            if len(module_values) != len(modules):
+                raise ValueError(f'Expected {len(modules)} values for module "{module_name}" but '
+                                 f'received {len(module_values)}.')
+
+            for module, value in zip(modules, module_values):
+                if not hasattr(module, 'ingest_online_data'):
+                    raise AttributeError(f'Module "{module_name}" does not support online ingestion.')
+                module.ingest_online_data(value, step=step)
+
+    def fetch_real_time_data(self, module_names=None):
+        """Fetch the latest real-time measurements from online modules.
+
+        Parameters
+        ----------
+        module_names : Iterable[str] or None, default None
+            Optional set of module names to include. If None, values from all
+            online-capable modules are returned.
+
+        Returns
+        -------
+        dict[str, list[float]]
+            Dictionary of module names mapped to lists of the most recent
+            real-time values.
+        """
+
+        if module_names is not None:
+            module_names = set(module_names)
+
+        measurements = {}
+        for module_name, modules in self._modules.iterdict():
+            if module_names is not None and module_name not in module_names:
+                continue
+
+            values = []
+            for module in modules:
+                value = None
+                if hasattr(module, 'current_load'):
+                    value = module.current_load
+                elif hasattr(module, 'current_renewable'):
+                    value = module.current_renewable
+                elif hasattr(module, 'current_obs'):
+                    obs = module.current_obs
+                    try:
+                        value = obs.item()
+                    except ValueError:
+                        value = obs.tolist()
+
+                if value is not None:
+                    values.append(value)
+
+            if values:
+                measurements[module_name] = values
+
+        return measurements
 
     def get_log(self, as_frame=True, drop_singleton_key=False, drop_forecasts=False):
         """
