@@ -94,11 +94,11 @@ def test_online_real_time_simulation():
 
     records = []
     for step in range(steps):
-        #load_value = -rng.uniform(0.0, 3.0)
+        #load_value = rng.uniform(0.0, 3.0)
         #pv_value = rng.uniform(0.0, 3.0)
 
         load_value = 2.3
-        pv_value = 2
+        pv_value = 0
 
         records.append({'load_consumption': load_value, 'pv_production': pv_value})
         
@@ -112,7 +112,7 @@ def test_online_real_time_simulation():
         assert pytest.approx(pv_value) == measurements['pv'][0]
 
 
-        control = {"battery" : [1] ,
+        control = {"battery" : [-1] ,
                    "grid": [1] 
            }
 
