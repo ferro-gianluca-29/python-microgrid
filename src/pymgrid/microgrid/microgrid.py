@@ -5,14 +5,14 @@ import yaml
 from copy import deepcopy
 from warnings import warn
 
-from pymgrid.microgrid import DEFAULT_HORIZON
-from pymgrid.modules import ModuleContainer, UnbalancedEnergyModule
-from pymgrid.microgrid.utils.step import MicrogridStep
-from pymgrid.utils.eq import verbose_eq
-from pymgrid.utils.logger import ModularLogger
-from pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
-from pymgrid.utils.space import MicrogridSpace
-from pymgrid.utils.deprecation import deprecation_err
+from src.pymgrid.microgrid import DEFAULT_HORIZON
+from src.pymgrid.modules import ModuleContainer, UnbalancedEnergyModule
+from src.pymgrid.microgrid.utils.step import MicrogridStep
+from src.pymgrid.utils.eq import verbose_eq
+from src.pymgrid.utils.logger import ModularLogger
+from src.pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
+from src.pymgrid.utils.space import MicrogridSpace
+from src.pymgrid.utils.deprecation import deprecation_err
 
 
 class Microgrid(yaml.YAMLObject):
@@ -113,12 +113,17 @@ class Microgrid(yaml.YAMLObject):
                                                    loss_load_cost,
                                                    overgeneration_cost)
 
-        # TODO (ahalev) transform envs to wrappers, and remove microgrid from attr names)
-        self.microgrid_action_space = MicrogridSpace.from_module_spaces(
-            self._modules.get_attrs('action_space', 'module_type', as_pandas=False), 'act')
-        self.microgrid_observation_space = MicrogridSpace.from_module_spaces(
-            self._modules.get_attrs('observation_space', as_pandas=False), 'obs'
-        )
+        try:
+            self.microgrid_action_space = MicrogridSpace.from_module_spaces(
+                self._modules.get_attrs('action_space', 'module_type', as_pandas=False), 'act'
+            )
+            self.microgrid_observation_space = MicrogridSpace.from_module_spaces(
+                self._modules.get_attrs('observation_space', as_pandas=False), 'obs'
+            )
+        except AttributeError:
+            # Nessun supporto Gym: disabilito gli spazi
+            self.microgrid_action_space = None
+            self.microgrid_observation_space = None
 
         self._initial_step = self._get_module_initial_step()
         self._final_step = self._get_module_final_step()

@@ -3,8 +3,8 @@ import yaml
 
 from warnings import warn
 
-from pymgrid.modules.base import BaseMicrogridModule
-from pymgrid.modules.battery.transition_models import BatteryTransitionModel
+from src.pymgrid.modules.base import BaseMicrogridModule
+from src.pymgrid.modules.battery.transition_models import BatteryTransitionModel
 
 
 class BatteryModule(BaseMicrogridModule):
