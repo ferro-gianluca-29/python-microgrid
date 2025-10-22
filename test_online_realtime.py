@@ -50,3 +50,7 @@ def test_online_real_time_simulation():
     assert microgrid.current_step == load_module.initial_step + steps
     assert len(load_module.time_series) >= steps
     assert len(pv_module.time_series) >= steps
+
+
+
+test_online_real_time_simulation()
