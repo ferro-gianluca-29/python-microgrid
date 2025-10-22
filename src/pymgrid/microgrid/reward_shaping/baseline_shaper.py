@@ -1,6 +1,6 @@
 import numpy as np
 
-from pymgrid.microgrid.reward_shaping.base import BaseRewardShaper
+from src.pymgrid.microgrid.reward_shaping.base import BaseRewardShaper
 
 
 class BaselineShaper(BaseRewardShaper):

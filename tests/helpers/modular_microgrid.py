@@ -1,8 +1,8 @@
 import numpy as np
 
-from pymgrid import Microgrid
+from src.pymgrid import Microgrid
 
-from pymgrid.modules import (
+from src.pymgrid.modules import (
     BatteryModule,
     GensetModule,
     GridModule,

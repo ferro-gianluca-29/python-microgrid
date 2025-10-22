@@ -1,6 +1,6 @@
 import numpy as np
 
-from pymgrid import Microgrid
+from src.pymgrid import Microgrid
 
 from tests.helpers.modular_microgrid import get_modular_microgrid
 from tests.helpers.test_case import TestCase

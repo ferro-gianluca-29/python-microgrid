@@ -4,8 +4,8 @@ import pandas as pd
 from collections import UserDict, UserList
 import warnings
 
-from pymgrid.modules.base import BaseMicrogridModule
-from pymgrid.utils.eq import verbose_eq
+from src.pymgrid.modules.base import BaseMicrogridModule
+from src.pymgrid.utils.eq import verbose_eq
 
 
 class Container(UserDict):

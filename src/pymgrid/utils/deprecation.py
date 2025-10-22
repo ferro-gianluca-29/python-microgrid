@@ -1,7 +1,7 @@
 import functools
 import warnings
 
-from pymgrid.errors import PymgridDeprecationWarning, DeprecatedError
+from src.pymgrid.errors import PymgridDeprecationWarning, DeprecatedError
 
 
 def deprecation_warning(successor, msg=None):

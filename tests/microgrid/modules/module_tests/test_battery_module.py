@@ -1,7 +1,7 @@
 from tests.helpers.test_case import TestCase
 
-from pymgrid.modules import BatteryModule
-from pymgrid.modules.battery.transition_models import BiasedTransitionModel, DecayTransitionModel
+from src.pymgrid.modules import BatteryModule
+from src.pymgrid.modules.battery.transition_models import BiasedTransitionModel, DecayTransitionModel
 
 DEFAULT_PARAMS = {
             'min_capacity': 0,

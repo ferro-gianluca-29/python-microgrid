@@ -8,9 +8,9 @@ from tests.helpers.modular_microgrid import get_modular_microgrid
 
 from tests.envs.test_discrete import TestDiscreteEnvScenario
 
-from pymgrid.envs import NetLoadContinuousMicrogridEnv
-from pymgrid.modules import RenewableModule, BatteryModule
-from pymgrid import Microgrid
+from src.pymgrid.envs import NetLoadContinuousMicrogridEnv
+from src.pymgrid.modules import RenewableModule, BatteryModule
+from src.pymgrid import Microgrid
 
 
 class TestNetLoadContinuousEnv(TestCase):

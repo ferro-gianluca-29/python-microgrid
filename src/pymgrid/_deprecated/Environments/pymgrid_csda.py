@@ -1,4 +1,4 @@
-from pymgrid.Environments.Environment import Environment
+from src.pymgrid.Environments.Environment import Environment
 import numpy as np
 import gym
 from gym.utils import seeding

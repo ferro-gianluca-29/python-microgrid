@@ -3,7 +3,7 @@ import numpy as np
 from tests.helpers.test_case import TestCase
 from tests.helpers.modular_microgrid import get_modular_microgrid
 
-from pymgrid.envs import DiscreteMicrogridEnv
+from src.pymgrid.envs import DiscreteMicrogridEnv
 
 
 class TestTrajectory(TestCase):
@@ -157,7 +157,7 @@ class TestTrajectory(TestCase):
 
     def test_trajectory_serialization(self):
         import yaml
-        from pymgrid.microgrid.trajectory import DeterministicTrajectory
+        from src.pymgrid.microgrid.trajectory import DeterministicTrajectory
 
         trajectory_func = DeterministicTrajectory(10, 20)
 

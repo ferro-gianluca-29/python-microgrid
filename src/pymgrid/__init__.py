@@ -9,8 +9,7 @@ from .MicrogridGenerator import MicrogridGenerator
 
 from .utils import add_pymgrid_yaml_representers, dry_run
 
-import pymgrid.envs
-import pymgrid.modules
+from src.pymgrid import envs, modules
 
 __all__ = [
     'add_pymgrid_yaml_representers',

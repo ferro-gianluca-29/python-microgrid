@@ -13,8 +13,8 @@ try:
 except ImportError:
     mosek = None
 
-from pymgrid.algos.Control import ControlOutput, HorizonOutput
-from pymgrid.utils.DataGenerator import return_underlying_data
+from src.pymgrid.algos.Control import ControlOutput, HorizonOutput
+from src.pymgrid.utils.DataGenerator import return_underlying_data
 import logging
 
 

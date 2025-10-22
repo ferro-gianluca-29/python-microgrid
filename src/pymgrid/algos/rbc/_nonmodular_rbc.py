@@ -2,7 +2,7 @@ import operator
 import sys
 from copy import deepcopy
 
-from pymgrid.algos.Control import ControlOutput
+from src.pymgrid.algos.Control import ControlOutput
 
 
 class NonModularRuleBasedControl:

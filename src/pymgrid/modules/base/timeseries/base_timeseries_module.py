@@ -1,8 +1,8 @@
 import numpy as np
 
-from pymgrid.microgrid import DEFAULT_HORIZON
-from pymgrid.modules.base import BaseMicrogridModule
-from pymgrid.forecast.forecaster import get_forecaster, OracleForecaster, NoForecaster
+from src.pymgrid.microgrid import DEFAULT_HORIZON
+from src.pymgrid.modules.base import BaseMicrogridModule
+from src.pymgrid.forecast.forecaster import get_forecaster, OracleForecaster, NoForecaster
 
 
 class BaseTimeSeriesMicrogridModule(BaseMicrogridModule):

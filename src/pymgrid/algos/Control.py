@@ -275,7 +275,7 @@ class Benchmarks:
         :return:
             None
         """
-        from pymgrid.algos import ModelPredictiveControl
+        from src.pymgrid.algos import ModelPredictiveControl
         MPC = ModelPredictiveControl(self.microgrid)
         self.mpc_output = MPC.run(verbose=verbose, **kwargs)
         self.has_mpc_benchmark = True
@@ -287,14 +287,14 @@ class Benchmarks:
         :return:
             None
         """
-        from pymgrid.algos import RuleBasedControl
+        from src.pymgrid.algos import RuleBasedControl
         RBC = RuleBasedControl(self.microgrid)
         self.rule_based_output = RBC.run_rule_based()
         self.has_rule_based_benchmark = True
         self.outputs_dict[self.rule_based_output.alg_name] = self.rule_based_output
 
     def run_saa_benchmark(self, preset_to_use=85, **kwargs):
-        from pymgrid.algos.saa import SampleAverageApproximation
+        from src.pymgrid.algos.saa import SampleAverageApproximation
         SAA = SampleAverageApproximation(self.microgrid, preset_to_use=preset_to_use, **kwargs)
         self.saa_output = SAA.run(**kwargs)
         self.has_saa_benchmark = True

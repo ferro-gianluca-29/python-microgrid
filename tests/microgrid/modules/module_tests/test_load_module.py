@@ -1,6 +1,6 @@
 import numpy as np
 
-from pymgrid.modules import LoadModule
+from src.pymgrid.modules import LoadModule
 
 from tests.microgrid.modules.module_tests.timeseries_modules import (
     TestTimeseriesModuleForecasting,

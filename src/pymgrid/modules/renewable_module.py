@@ -1,8 +1,8 @@
 import numpy as np
 import yaml
 
-from pymgrid.microgrid import DEFAULT_HORIZON
-from pymgrid.modules.base import BaseTimeSeriesMicrogridModule
+from src.pymgrid.microgrid import DEFAULT_HORIZON
+from src.pymgrid.modules.base import BaseTimeSeriesMicrogridModule
 
 
 class RenewableModule(BaseTimeSeriesMicrogridModule):

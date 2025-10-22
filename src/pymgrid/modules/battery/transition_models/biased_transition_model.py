@@ -1,4 +1,4 @@
-from pymgrid.modules.battery.transition_models import BatteryTransitionModel
+from src.pymgrid.modules.battery.transition_models import BatteryTransitionModel
 
 
 class BiasedTransitionModel(BatteryTransitionModel):

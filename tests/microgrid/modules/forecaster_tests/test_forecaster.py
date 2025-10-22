@@ -1,8 +1,8 @@
 import numpy as np
 from tests.helpers.test_case import TestCase
-from pymgrid.forecast import (
+from src.pymgrid.forecast import (
     get_forecaster, OracleForecaster, GaussianNoiseForecaster, UserDefinedForecaster, NoForecaster)
-from pymgrid.utils.space import ModuleSpace
+from src.pymgrid.utils.space import ModuleSpace
 
 STATE_COMPONENTS = np.random.randint(low=1, high=10)
 FORECAST_HORIZON = np.random.randint(low=2, high=10)

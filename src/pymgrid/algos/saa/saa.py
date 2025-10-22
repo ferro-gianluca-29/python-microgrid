@@ -2,9 +2,9 @@ import time
 
 import numpy as np
 import pandas as pd
-from pymgrid.algos.Control import ControlOutput
-from pymgrid.utils.DataGenerator import SampleGenerator
-from pymgrid.algos import ModelPredictiveControl
+from src.pymgrid.algos.Control import ControlOutput
+from src.pymgrid.utils.DataGenerator import SampleGenerator
+from src.pymgrid.algos import ModelPredictiveControl
 
 
 class SampleAverageApproximation(SampleGenerator):

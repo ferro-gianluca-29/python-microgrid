@@ -7,8 +7,8 @@ from gym import Env
 from gym.spaces import Box, Dict, Tuple, flatten_space, flatten
 from abc import abstractmethod
 
-from pymgrid import NonModularMicrogrid, Microgrid
-from pymgrid.errors.env_signature import environment_signature_error
+from src.pymgrid import NonModularMicrogrid, Microgrid
+from src.pymgrid.errors.env_signature import environment_signature_error
 
 
 class BaseMicrogridEnv(Microgrid, Env):

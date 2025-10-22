@@ -4,10 +4,10 @@ import pytest
 from tests.helpers.test_case import TestCase
 from tests.helpers.modular_microgrid import get_modular_microgrid
 
-from pymgrid import Microgrid
-from pymgrid.algos import ModelPredictiveControl
-from pymgrid.modules.base import BaseTimeSeriesMicrogridModule
-from pymgrid.forecast import OracleForecaster, GaussianNoiseForecaster
+from src.pymgrid import Microgrid
+from src.pymgrid.algos import ModelPredictiveControl
+from src.pymgrid.modules.base import BaseTimeSeriesMicrogridModule
+from src.pymgrid.forecast import OracleForecaster, GaussianNoiseForecaster
 
 
 @pytest.mark.slow

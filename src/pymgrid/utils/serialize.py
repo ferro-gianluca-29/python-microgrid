@@ -9,13 +9,13 @@ TO_CSV_TYPES = np.ndarray, pd.core.generic.NDFrame
 
 def add_pymgrid_yaml_representers():
     add_numpy_pandas_representers()
-    from pymgrid.microgrid.trajectory import (
+    from src.pymgrid.microgrid.trajectory import (
         DeterministicTrajectory,
         StochasticTrajectory,
         FixedLengthStochasticTrajectory
     )
 
-    from pymgrid.microgrid.reward_shaping import (
+    from src.pymgrid.microgrid.reward_shaping import (
         PVCurtailmentShaper,
         BatteryDischargeShaper,
         RescaleShaper,
@@ -24,7 +24,7 @@ def add_pymgrid_yaml_representers():
         SequentialShaper
     )
 
-    from pymgrid.modules.battery.transition_models import (
+    from src.pymgrid.modules.battery.transition_models import (
         BatteryTransitionModel,
         BiasedTransitionModel,
         DecayTransitionModel

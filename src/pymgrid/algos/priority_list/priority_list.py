@@ -7,8 +7,8 @@ from itertools import permutations
 
 from gym.spaces import Discrete
 
-from pymgrid.algos.priority_list import PriorityListElement as Element
-from pymgrid.modules import GensetModule
+from src.pymgrid.algos.priority_list import PriorityListElement as Element
+from src.pymgrid.modules import GensetModule
 
 
 class PriorityListAlgo:

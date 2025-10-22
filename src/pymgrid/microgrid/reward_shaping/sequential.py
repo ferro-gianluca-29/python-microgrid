@@ -1,6 +1,6 @@
 import functools
 
-from pymgrid.microgrid.reward_shaping.base import BaseRewardShaper
+from src.pymgrid.microgrid.reward_shaping.base import BaseRewardShaper
 
 
 class SequentialShaper(BaseRewardShaper):
