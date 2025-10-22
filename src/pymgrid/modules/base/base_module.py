@@ -6,10 +6,10 @@ import numpy as np
 
 from warnings import warn
 
-from pymgrid.utils.eq import verbose_eq
-from pymgrid.utils.logger import ModularLogger
-from pymgrid.utils.space import ModuleSpace
-from pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
+from src.pymgrid.utils.eq import verbose_eq
+from src.pymgrid.utils.logger import ModularLogger
+from src.pymgrid.utils.space import ModuleSpace
+from src.pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
 
 
 script_logger = logging.getLogger(__name__)

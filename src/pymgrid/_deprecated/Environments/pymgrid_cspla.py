@@ -19,7 +19,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Lesser General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
-from pymgrid.Environments.Environment import Environment
+from src.pymgrid.Environments.Environment import Environment
 import numpy as np
 import gym
 from gym.utils import seeding

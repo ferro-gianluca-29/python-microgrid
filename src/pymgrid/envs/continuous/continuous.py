@@ -3,8 +3,8 @@ import operator
 
 from gym.spaces import Box, Dict, Tuple, flatten_space
 
-from pymgrid.envs.base import BaseMicrogridEnv
-from pymgrid.utils.space import MicrogridSpace, extract_builtins, flatten, unflatten
+from src.pymgrid.envs.base import BaseMicrogridEnv
+from src.pymgrid.utils.space import MicrogridSpace, extract_builtins, flatten, unflatten
 
 
 class ContinuousMicrogridEnv(BaseMicrogridEnv):

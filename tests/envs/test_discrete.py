@@ -4,7 +4,7 @@ from math import factorial
 from tests.helpers.test_case import TestCase
 from tests.helpers.modular_microgrid import get_modular_microgrid
 
-from pymgrid.envs import DiscreteMicrogridEnv
+from src.pymgrid.envs import DiscreteMicrogridEnv
 
 
 class TestDiscreteEnv(TestCase):

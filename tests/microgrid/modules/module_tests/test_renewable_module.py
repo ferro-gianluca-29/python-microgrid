@@ -1,5 +1,5 @@
 
-from pymgrid.modules import RenewableModule
+from src.pymgrid.modules import RenewableModule
 
 from tests.microgrid.modules.module_tests.timeseries_modules import (
     TestTimeseriesModuleForecasting,

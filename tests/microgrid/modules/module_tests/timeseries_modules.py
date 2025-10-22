@@ -2,7 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from gym.spaces import Box
 
-from pymgrid.utils.space import ModuleSpace
+from src.pymgrid.utils.space import ModuleSpace
 
 from tests.helpers.test_case import TestCase
 

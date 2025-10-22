@@ -5,14 +5,14 @@ import yaml
 from copy import deepcopy
 from warnings import warn
 
-from pymgrid.microgrid import DEFAULT_HORIZON
-from pymgrid.modules import ModuleContainer, UnbalancedEnergyModule
-from pymgrid.microgrid.utils.step import MicrogridStep
-from pymgrid.utils.eq import verbose_eq
-from pymgrid.utils.logger import ModularLogger
-from pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
-from pymgrid.utils.space import MicrogridSpace
-from pymgrid.utils.deprecation import deprecation_err
+from src.pymgrid.microgrid import DEFAULT_HORIZON
+from src.pymgrid.modules import ModuleContainer, UnbalancedEnergyModule
+from src.pymgrid.microgrid.utils.step import MicrogridStep
+from src.pymgrid.utils.eq import verbose_eq
+from src.pymgrid.utils.logger import ModularLogger
+from src.pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
+from src.pymgrid.utils.space import MicrogridSpace
+from src.pymgrid.utils.deprecation import deprecation_err
 
 
 class Microgrid(yaml.YAMLObject):
@@ -61,8 +61,8 @@ class Microgrid(yaml.YAMLObject):
 
     Examples
     --------
-    >>> from pymgrid import Microgrid
-    >>> from pymgrid.modules import LoadModule, RenewableModule, GridModule, BatteryModule
+    >>> from src.pymgrid import Microgrid
+    >>> from src.pymgrid.modules import LoadModule, RenewableModule, GridModule, BatteryModule
     >>> timesteps = 10
     >>> load = LoadModule(10*np.random.rand(timesteps), loss_load_cost=10.)
     >>> pv = RenewableModule(10*np.random.rand(timesteps))
@@ -1163,7 +1163,7 @@ class Microgrid(yaml.YAMLObject):
             Any logs that have accumulated will be lost in conversion.
 
         """
-        from pymgrid.convert.convert import to_modular
+        from src.pymgrid.convert.convert import to_modular
         return to_modular(nonmodular)
 
     def to_nonmodular(self):
@@ -1184,7 +1184,7 @@ class Microgrid(yaml.YAMLObject):
             Any logs that have accumulated will be lost in conversion.
 
         """
-        from pymgrid.convert.convert import to_nonmodular
+        from src.pymgrid.convert.convert import to_nonmodular
         return to_nonmodular(self)
 
     @classmethod
@@ -1202,7 +1202,7 @@ class Microgrid(yaml.YAMLObject):
         scenario : pymgrid.Microgrid
             The loaded microgrid.
         """
-        from pymgrid import PROJECT_PATH
+        from src.pymgrid import PROJECT_PATH
         n = microgrid_number
 
         if n not in np.arange(25):

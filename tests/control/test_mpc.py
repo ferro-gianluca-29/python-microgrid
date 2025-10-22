@@ -3,7 +3,7 @@ import numpy as np
 from tests.helpers.test_case import TestCase
 from tests.helpers.modular_microgrid import get_modular_microgrid
 
-from pymgrid.algos import ModelPredictiveControl
+from src.pymgrid.algos import ModelPredictiveControl
 
 
 class TestMPC(TestCase):
@@ -14,7 +14,7 @@ class TestMPC(TestCase):
         self.assertEqual(mpc.horizon, 1)
 
     def test_run_with_load_pv_battery_grid(self):
-        from pymgrid.modules import RenewableModule, LoadModule
+        from src.pymgrid.modules import RenewableModule, LoadModule
 
         max_steps = 10
         pv_const = 50
@@ -34,7 +34,7 @@ class TestMPC(TestCase):
                         )
 
     def test_run_with_load_pv_battery_genset(self):
-        from pymgrid.modules import RenewableModule, LoadModule
+        from src.pymgrid.modules import RenewableModule, LoadModule
 
         max_steps = 10
         pv_const = 50
@@ -54,7 +54,7 @@ class TestMPC(TestCase):
                          [10.] * mpc_output.shape[0])
 
     def test_run_twice_with_load_pv_battery_genset_without_reset(self):
-        from pymgrid.modules import RenewableModule, LoadModule
+        from src.pymgrid.modules import RenewableModule, LoadModule
 
         max_steps = 10
         pv_const = 50
@@ -82,7 +82,7 @@ class TestMPC(TestCase):
                          [10.] * mpc_output.shape[0])
 
     def test_run_twice_with_load_pv_battery_genset_with_reset(self):
-        from pymgrid.modules import RenewableModule, LoadModule
+        from src.pymgrid.modules import RenewableModule, LoadModule
 
         max_steps = 10
         pv_const = 50
@@ -111,7 +111,7 @@ class TestMPC(TestCase):
                          [10.] * mpc_output.shape[0])
 
     def test_run_with_load_pv_battery_grid_different_names(self):
-        from pymgrid.modules import RenewableModule, LoadModule
+        from src.pymgrid.modules import RenewableModule, LoadModule
 
         max_steps = 10
         pv_const = 50

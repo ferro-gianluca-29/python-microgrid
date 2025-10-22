@@ -1,5 +1,5 @@
-from pymgrid import Microgrid, NonModularMicrogrid
-from pymgrid.errors import DeprecatedError
+from src.pymgrid import Microgrid, NonModularMicrogrid
+from src.pymgrid.errors import DeprecatedError
 
 
 def environment_signature_error(cls, modules):

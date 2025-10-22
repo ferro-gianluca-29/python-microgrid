@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from pymgrid import Microgrid
-from pymgrid.modules import GridModule, LoadModule, RenewableModule
+from src.pymgrid import Microgrid
+from src.pymgrid.modules import GridModule, LoadModule, RenewableModule
 
 
 def test_online_real_time_simulation():
