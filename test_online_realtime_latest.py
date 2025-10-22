@@ -111,9 +111,16 @@ def test_online_real_time_simulation():
         assert pytest.approx(load_value) == measurements['load'][0]
         assert pytest.approx(pv_value) == measurements['pv'][0]
 
+        e_grid = 0
 
-        control = {"battery" : [-1] ,
-                   "grid": [1] 
+        if pv_value == 0 and e_grid == 0:
+
+            e_batt = 0
+
+        else: e_batt = -1
+
+        control = {"battery" : [e_batt] ,
+                   "grid": [e_grid] 
            }
 
         observations, reward, done, info = microgrid.step(control, normalized = False)
