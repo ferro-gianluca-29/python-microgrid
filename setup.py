@@ -31,7 +31,7 @@ EXTRAS["all"] = list(set(sum(EXTRAS.values(), [])))
 
 
 setup(
-    name="pymgrid_custom",
+    name="python-microgrid",
     package_dir={"": "src"},
     packages=find_packages("src"),
     python_requires=">=3.6",
