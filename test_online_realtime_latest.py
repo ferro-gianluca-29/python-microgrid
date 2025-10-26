@@ -111,13 +111,15 @@ def test_online_real_time_simulation():
         assert pytest.approx(load_value) == measurements['load'][0]
         assert pytest.approx(pv_value) == measurements['pv'][0]
 
-        e_grid = 0
+        e_grid = 2
 
-        if pv_value == 0 and e_grid == 0:
+        e_batt = -1
 
-            e_batt = 0
+        if pv_value + e_grid <= abs(e_batt):
 
-        else: e_batt = -1
+            e_batt = abs(e_batt) - pv_value + e_grid
+
+        else: e_batt = - (pv_value + e_grid - abs(e_batt))
 
         control = {"battery" : [e_batt] ,
                    "grid": [e_grid] 
