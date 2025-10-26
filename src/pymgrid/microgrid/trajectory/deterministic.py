@@ -1,4 +1,4 @@
-from pymgrid.microgrid.trajectory.base import BaseTrajectory
+from src.pymgrid.microgrid.trajectory.base import BaseTrajectory
 
 
 class DeterministicTrajectory(BaseTrajectory):

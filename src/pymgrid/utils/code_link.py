@@ -1,6 +1,6 @@
 import inspect
 import os
-import pymgrid
+import src.pymgrid as pymgrid
 
 
 def obj_linkcode(obj):

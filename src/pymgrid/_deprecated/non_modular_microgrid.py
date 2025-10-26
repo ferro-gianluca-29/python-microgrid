@@ -1191,7 +1191,7 @@ class NonModularMicrogrid:
         This function prints the cumulative cost of the different benchmark ran and different part of the dataset
         depending on if split it in train/test or not.
         """
-        from pymgrid.algos.Control import Benchmarks
+        from src.pymgrid.algos.Control import Benchmarks
         benchmarks = Benchmarks(self)
 
         if len(benchmarks.outputs_dict) == 0:
@@ -1259,10 +1259,10 @@ class NonModularMicrogrid:
 
     @classmethod
     def from_modular(cls, modular):
-        from pymgrid.convert.convert import to_nonmodular
+        from src.pymgrid.convert.convert import to_nonmodular
         return to_nonmodular(modular)
 
     def to_modular(self):
-        from pymgrid.convert.convert import to_modular
+        from src.pymgrid.convert.convert import to_modular
         return to_modular(self)
 

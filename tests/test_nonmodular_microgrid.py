@@ -10,7 +10,7 @@ Gonzague Henri
 import unittest
 import numpy as np
 
-from pymgrid.MicrogridGenerator import MicrogridGenerator
+from src.pymgrid.MicrogridGenerator import MicrogridGenerator
 
 
 class TestNonmodularMicrogrid(unittest.TestCase):

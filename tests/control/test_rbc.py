@@ -3,7 +3,7 @@ from copy import deepcopy
 from tests.helpers.test_case import TestCase
 from tests.helpers.modular_microgrid import get_modular_microgrid
 
-from pymgrid.algos import RuleBasedControl
+from src.pymgrid.algos import RuleBasedControl
 
 
 class TestRBC(TestCase):

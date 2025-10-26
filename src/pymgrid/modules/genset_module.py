@@ -2,7 +2,7 @@ import yaml
 import numpy as np
 from warnings import warn
 
-from pymgrid.modules.base import BaseMicrogridModule
+from src.pymgrid.modules.base import BaseMicrogridModule
 
 
 class GensetModule(BaseMicrogridModule):

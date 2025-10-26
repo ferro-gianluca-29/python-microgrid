@@ -10,7 +10,7 @@ import sys
 from copy import deepcopy
 from builtins import object
 
-import pymgrid
+import src.pymgrid as pymgrid
 
 
 # -- Project information -----------------------------------------------------

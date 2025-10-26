@@ -1,8 +1,8 @@
 import numpy as np
 import yaml
 
-from pymgrid.microgrid import DEFAULT_HORIZON
-from pymgrid.modules.base import BaseTimeSeriesMicrogridModule
+from src.pymgrid.microgrid import DEFAULT_HORIZON
+from src.pymgrid.modules.base import BaseTimeSeriesMicrogridModule
 
 
 class GridModule(BaseTimeSeriesMicrogridModule):
@@ -20,7 +20,7 @@ class GridModule(BaseTimeSeriesMicrogridModule):
     max_export : float
         Maximum export at any time step.
 
-    time_series : array-like, shape (n_features, n_steps), n_features = {3, 4}
+    time_series : array-like or None, shape (n_features, n_steps), n_features = {3, 4}
         If n_features=3, time series of ``(import_price, export_price, co2_per_kwH)`` in each column, respectively.
         Grid is assumed to have no outages.
         If n_features=4, time series of ``(import_price, export_price, co2_per_kwH, grid_status)``
@@ -64,6 +64,17 @@ class GridModule(BaseTimeSeriesMicrogridModule):
         Whether to raise errors if bounds are exceeded in an action.
         If False, actions are clipped to the limit possible.
 
+    online : bool, default False
+        If True, the module expects measurements to be provided incrementally using
+        :meth:`.ingest_online_data` instead of being initialized with a complete time
+        series.
+
+    initial_time_series_value : Sequence[float] or None, default None
+        Bootstrap value for the internal time series when ``online`` is True and
+        ``time_series`` is None. The sequence must contain three or four non-negative
+        entries corresponding to ``(import_price, export_price, co2_per_kwH, grid_status)``.
+        If the status component is omitted it defaults to 1 (grid available).
+
     """
 
     module_type = ('grid', 'controllable')
@@ -86,9 +97,17 @@ class GridModule(BaseTimeSeriesMicrogridModule):
                  final_step=-1,
                  cost_per_unit_co2=0.0,
                  normalized_action_bounds=(0, 1),
-                 raise_errors=False):
+                 raise_errors=False,
+                 online=False,
+                 initial_time_series_value=None):
 
-        time_series = self._check_params(max_import, max_export, time_series)
+        time_series, initial_time_series_value = self._check_params(
+            max_import,
+            max_export,
+            time_series,
+            online,
+            initial_time_series_value,
+        )
         self.max_import, self.max_export = max_import, max_export
         self.cost_per_unit_co2 = cost_per_unit_co2
 
@@ -103,30 +122,70 @@ class GridModule(BaseTimeSeriesMicrogridModule):
             final_step=final_step,
             normalized_action_bounds=normalized_action_bounds,
             provided_energy_name='grid_import',
-            absorbed_energy_name='grid_export'
+            absorbed_energy_name='grid_export',
+            online=online,
+            initial_time_series_value=initial_time_series_value
         )
 
-    def _check_params(self, max_import, max_export, time_series):
+    def _check_params(self,
+                      max_import,
+                      max_export,
+                      time_series,
+                      online,
+                      initial_time_series_value):
         if max_import < 0:
             raise ValueError('parameter max_import must be non-negative.')
         if max_export < 0:
             raise ValueError('parameter max_export must be non-negative.')
-        if time_series.shape[1] not in [3, 4]:
-            raise ValueError('Time series must be two dimensional with three or four columns.'
-                             'See docstring for details.')
+        validated_time_series = None
 
-        if time_series.shape[1] == 4:
-            if not ((np.array(time_series)[:, -1] == 0) | (np.array(time_series)[:, -1] == 1)).all():
-                raise ValueError("Last column (grid status) must contain binary values.")
-        else:
-            new_ts = np.ones((time_series.shape[0], 4))
-            new_ts[:, :3] = time_series
-            time_series = new_ts
+        def _format_timeseries(data, label):
+            arr = np.array(data, dtype=float)
 
-        if (time_series < 0).any().any():
-            raise ValueError('Time series must be non-negative.')
+            if arr.ndim == 1:
+                arr = arr.reshape((1, arr.shape[0]))
+            elif arr.ndim != 2:
+                raise ValueError('Time series must be two dimensional with three or four columns.'
+                                 'See docstring for details.')
 
-        return time_series
+            if arr.shape[1] not in (3, 4):
+                raise ValueError('Time series must be two dimensional with three or four columns.'
+                                 'See docstring for details.')
+
+            if arr.shape[1] == 4:
+                status = arr[:, -1]
+                if not np.isin(status, (0, 1)).all():
+                    raise ValueError("Last column (grid status) must contain binary values.")
+            else:
+                expanded = np.ones((arr.shape[0], 4))
+                expanded[:, :3] = arr
+                arr = expanded
+
+            if (arr < 0).any():
+                if label == 'initial_time_series_value':
+                    raise ValueError('initial_time_series_value must be non-negative.')
+                raise ValueError('Time series must be non-negative.')
+
+            return arr
+
+        if time_series is not None:
+            validated_time_series = _format_timeseries(time_series, 'time_series')
+        elif not online:
+            raise ValueError('time_series cannot be None when online mode is disabled.')
+
+        validated_initial_value = None
+
+        if initial_time_series_value is not None:
+            initial_arr = _format_timeseries(initial_time_series_value, 'initial_time_series_value')
+            if initial_arr.shape[0] != 1:
+                if online:
+                    raise ValueError('initial_time_series_value must define a single step when using online mode.')
+                raise ValueError('initial_time_series_value must define a single step.')
+            validated_initial_value = initial_arr.reshape(-1)
+        elif online and validated_time_series is None:
+            validated_initial_value = np.array([0.0, 0.0, 0.0, 1.0])
+
+        return validated_time_series, validated_initial_value
 
     def _get_bounds(self):
         min_obs = self._time_series.min(axis=0)

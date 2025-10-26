@@ -1,8 +1,8 @@
 from copy import deepcopy
 from tqdm import tqdm
 
-from pymgrid import Microgrid
-from pymgrid.algos.priority_list import PriorityListAlgo
+from src.pymgrid import Microgrid
+from src.pymgrid.algos.priority_list import PriorityListAlgo
 
 
 class RuleBasedControl(PriorityListAlgo):

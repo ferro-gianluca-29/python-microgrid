@@ -5,14 +5,14 @@ import yaml
 from copy import deepcopy
 from warnings import warn
 
-from pymgrid.microgrid import DEFAULT_HORIZON
-from pymgrid.modules import ModuleContainer, UnbalancedEnergyModule
-from pymgrid.microgrid.utils.step import MicrogridStep
-from pymgrid.utils.eq import verbose_eq
-from pymgrid.utils.logger import ModularLogger
-from pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
-from pymgrid.utils.space import MicrogridSpace
-from pymgrid.utils.deprecation import deprecation_err
+from src.pymgrid.microgrid import DEFAULT_HORIZON
+from src.pymgrid.modules import ModuleContainer, UnbalancedEnergyModule
+from src.pymgrid.microgrid.utils.step import MicrogridStep
+from src.pymgrid.utils.eq import verbose_eq
+from src.pymgrid.utils.logger import ModularLogger
+from src.pymgrid.utils.serialize import add_numpy_pandas_representers, add_numpy_pandas_constructors, dump_data
+from src.pymgrid.utils.space import MicrogridSpace
+from src.pymgrid.utils.deprecation import deprecation_err
 
 
 class Microgrid(yaml.YAMLObject):
@@ -61,8 +61,8 @@ class Microgrid(yaml.YAMLObject):
 
     Examples
     --------
-    >>> from pymgrid import Microgrid
-    >>> from pymgrid.modules import LoadModule, RenewableModule, GridModule, BatteryModule
+    >>> from src.pymgrid import Microgrid
+    >>> from src.pymgrid.modules import LoadModule, RenewableModule, GridModule, BatteryModule
     >>> timesteps = 10
     >>> load = LoadModule(10*np.random.rand(timesteps), loss_load_cost=10.)
     >>> pv = RenewableModule(10*np.random.rand(timesteps))
@@ -258,9 +258,15 @@ class Microgrid(yaml.YAMLObject):
         control_copy = control.copy()
         microgrid_step = MicrogridStep(reward_shaping_func=self.reward_shaping_func, cost_info=self.get_cost_info())
 
+        load_tracking = []
+
         for name, modules in self.fixed.iterdict():
-            for module in modules:
-                microgrid_step.append(name, *module.step(0.0, normalized=False))
+            for idx, module in enumerate(modules):
+                module_step = module.step(0.0, normalized=False)
+                microgrid_step.append(name, *module_step)
+
+                if module.module_type[0] == 'load':
+                    load_tracking.append((name, idx, module))
 
         fixed_provided, fixed_consumed, _, _ = microgrid_step.balance()
         log_dict = self._get_log_dict(fixed_provided, fixed_consumed, prefix='fixed')
@@ -328,6 +334,8 @@ class Microgrid(yaml.YAMLObject):
 
         provided, consumed, reward, shaped_reward = microgrid_step.balance(shape_reward=True)
 
+        self._reconcile_load_met(microgrid_step, load_tracking)
+
         log_dict = self._get_log_dict(
             provided-controllable_fixed_provided,
             consumed-controllable_fixed_consumed,
@@ -351,6 +359,51 @@ class Microgrid(yaml.YAMLObject):
         if log_dict:
             _log_dict.update(log_dict)
         return _log_dict
+
+    def _reconcile_load_met(self, microgrid_step, load_tracking):
+        if not load_tracking:
+            return
+
+        load_entries = []
+        total_demand = 0.0
+        for name, idx, module in load_tracking:
+            module_infos = microgrid_step.info.get(name, [])
+            if idx >= len(module_infos):
+                continue
+
+            demand = float(module_infos[idx].get('absorbed_energy', 0.0))
+            load_entries.append((name, idx, module, demand))
+            total_demand += demand
+
+        if total_demand <= 0.0:
+            return
+
+        loss_load_total = 0.0
+        for name, modules in self._modules.iterdict():
+            for idx, module in enumerate(modules):
+                if module.module_type[0] != 'balancing':
+                    continue
+
+                module_infos = microgrid_step.info.get(name, [])
+                if idx >= len(module_infos):
+                    continue
+
+                loss_load_total += float(module_infos[idx].get('loss_load_energy', 0.0))
+
+        served_total = max(total_demand - loss_load_total, 0.0)
+        ratio = max(0.0, min(1.0, served_total / total_demand))
+
+        for name, idx, module, demand in load_entries:
+            served = demand * ratio
+            info_entry = microgrid_step.info.get(name, [])
+            if idx < len(info_entry):
+                info_entry[idx]['absorbed_energy'] = served
+                info_entry[idx]['unserved_energy'] = demand - served
+
+            try:
+                module._logger['load_met'][-1] = served
+            except KeyError:
+                pass
 
     def get_cost_info(self):
         return self._modules.get_attrs('production_marginal_cost', 'absorption_marginal_cost', as_pandas=False)
@@ -1110,7 +1163,7 @@ class Microgrid(yaml.YAMLObject):
             Any logs that have accumulated will be lost in conversion.
 
         """
-        from pymgrid.convert.convert import to_modular
+        from src.pymgrid.convert.convert import to_modular
         return to_modular(nonmodular)
 
     def to_nonmodular(self):
@@ -1131,7 +1184,7 @@ class Microgrid(yaml.YAMLObject):
             Any logs that have accumulated will be lost in conversion.
 
         """
-        from pymgrid.convert.convert import to_nonmodular
+        from src.pymgrid.convert.convert import to_nonmodular
         return to_nonmodular(self)
 
     @classmethod
@@ -1149,7 +1202,7 @@ class Microgrid(yaml.YAMLObject):
         scenario : pymgrid.Microgrid
             The loaded microgrid.
         """
-        from pymgrid import PROJECT_PATH
+        from src.pymgrid import PROJECT_PATH
         n = microgrid_number
 
         if n not in np.arange(25):

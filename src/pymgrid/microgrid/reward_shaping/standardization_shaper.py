@@ -1,5 +1,5 @@
-from pymgrid.microgrid.reward_shaping.base import BaseRewardShaper
-from pymgrid.utils.running_mean_std import RunningMeanStd
+from src.pymgrid.microgrid.reward_shaping.base import BaseRewardShaper
+from src.pymgrid.utils.running_mean_std import RunningMeanStd
 
 
 class StandardizationShaper(BaseRewardShaper):

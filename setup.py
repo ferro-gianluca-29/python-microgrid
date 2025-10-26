@@ -5,7 +5,7 @@ v = {}
 exec(open('src/pymgrid/version.py').read(), v)  # read __version__
 VERSION = v['__version__']
 DESCRIPTION = "A simulator for tertiary control of electrical microgrids"
-DOWNLOAD_URL = f"https://github.com/ahalev/python-microgrid/archive/refs/tags/v{VERSION}.tar.gz"
+DOWNLOAD_URL = f"https://github.com/ferro-gianluca-29/python-microgrid/archive/refs/tags/v{VERSION}.tar.gz"
 MAINTAINER = "Avishai Halev"
 MAINTAINER_EMAIL = "avishaihalev@gmail.com"
 LICENSE = "GNU LGPL 3.0"
@@ -31,7 +31,7 @@ EXTRAS["all"] = list(set(sum(EXTRAS.values(), [])))
 
 
 setup(
-    name="python-microgrid",
+    name="python-microgrid-custom",
     package_dir={"": "src"},
     packages=find_packages("src"),
     python_requires=">=3.6",

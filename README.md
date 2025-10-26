@@ -29,8 +29,8 @@ Microgrids are straightforward to generate from scratch. Simply define some modu
 to a microgrid:
 ```python
 import numpy as np
-from pymgrid import Microgrid
-from pymgrid.modules import GensetModule, BatteryModule, LoadModule, RenewableModule
+from src.pymgrid import Microgrid
+from src.pymgrid.modules import GensetModule, BatteryModule, LoadModule, RenewableModule
 
 
 genset = GensetModule(running_min_production=10,
@@ -130,7 +130,7 @@ to load the zeroth microgrid:
 
 ```python
 import yaml
-from pymgrid import PROJECT_PATH
+from src.pymgrid import PROJECT_PATH
 
 yaml_file = PROJECT_PATH / 'data/scenario/pymgrid25/microgrid_0/microgrid_0.yaml'
 microgrid = yaml.safe_load(yaml_file.open('r'))

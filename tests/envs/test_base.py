@@ -7,9 +7,9 @@ from copy import deepcopy
 from tests.helpers.test_case import TestCase
 from tests.helpers.modular_microgrid import get_modular_microgrid
 
-from pymgrid.modules import BatteryModule
-from pymgrid.envs import DiscreteMicrogridEnv, ContinuousMicrogridEnv, NetLoadContinuousMicrogridEnv
-from pymgrid.envs.base import BaseMicrogridEnv
+from src.pymgrid.modules import BatteryModule
+from src.pymgrid.envs import DiscreteMicrogridEnv, ContinuousMicrogridEnv, NetLoadContinuousMicrogridEnv
+from src.pymgrid.envs.base import BaseMicrogridEnv
 
 
 def pass_if_parent(func):

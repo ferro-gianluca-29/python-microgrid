@@ -2,7 +2,7 @@ from copy import deepcopy
 from contextlib import contextmanager
 from typing import Union
 
-import pymgrid
+import src.pymgrid as pymgrid
 
 
 @contextmanager
